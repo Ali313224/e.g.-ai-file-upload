@@ -23,3 +23,35 @@
     <footer>تم تطوير هذا الموقع بواسطة Ali_Shams_313</footer>
 </body>
 </html>
+<h2>أرسل رسالة أو صورة لـ ELYA AI</h2>
+
+<form id="chatForm" enctype="multipart/form-data">
+    <textarea id="message" placeholder="اكتب رسالتك هنا" rows="4" cols="50"></textarea><br><br>
+    <input type="file" id="fileInput" name="file"><br><br>
+    <button type="submit">إرسال</button>
+</form>
+
+<div id="response" style="margin-top: 20px; color: #4CAF50;"></div>
+
+<script>
+  const form = document.getElementById("chatForm");
+  const responseDiv = document.getElementById("response");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const message = document.getElementById("message").value;
+    const file = document.getElementById("fileInput").files[0];
+
+    const formData = new FormData();
+    formData.append("message", message);
+    if (file) formData.append("file", file);
+
+    const res = await fetch("/chat", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+    responseDiv.innerText = "الرد: " + data.reply;
+  });
+</script>
