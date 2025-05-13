@@ -1,19 +1,27 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const path = require('path');
+const multer = require('multer');
+const cors = require('cors');
+const { OpenAI } = require('openai');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+app.use(cors());
+app.use(express.json());
 
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname)));
+const upload = multer({ dest: 'uploads/' });
 
-app.post('/chat', (req, res) => {
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+app.post('/chat', async (req, res) => {
   const userMessage = req.body.message;
-  const reply = `رد تلقائي على: ${userMessage}`;
-  res.json({ reply });
+  try {
+    const chat = await openai.chat.completions.create({
+      messages: [{ role: 'user', content: userMessage }],
+      model: 'gpt-4',
+    });
+    res.json({ reply: chat.choices[0].message.content });
+  } catch (err) {
+    res.status(500).json({ error: 'Something went wrong' });
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+app.listen(3000, () => console.log('Server is running on port 3000'));
