@@ -71,3 +71,41 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+const express = require("express");
+const path = require("path");
+const multer = require("multer");
+const { OpenAI } = require("openai");
+require("dotenv").config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+const upload = multer({ dest: "uploads/" });
+
+app.use(express.static(__dirname));
+app.use(express.json());
+
+app.post("/chat", upload.single("file"), async (req, res) => {
+  const userMessage = req.body.message || "";
+
+  try {
+    const chatResponse = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [{ role: "user", content: userMessage }],
+    });
+
+    res.json({ reply: chatResponse.choices[0].message.content });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ reply: "حدث خطأ أثناء معالجة الرسالة." });
+  }
+});
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+app.listen(PORT, () => {
+  console.log(`الخادم يعمل على المنفذ ${PORT}`);
+});
